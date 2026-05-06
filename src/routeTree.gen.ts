@@ -9,38 +9,187 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UploadRouteImport } from './routes/upload'
+import { Route as UnauthorizedRouteImport } from './routes/unauthorized'
+import { Route as SearchRouteImport } from './routes/search'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as FeedRouteImport } from './routes/feed'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PhotoPhotoIdRouteImport } from './routes/photo.$photoId'
+import { Route as PhotoPhotoIdEditRouteImport } from './routes/photo.$photoId.edit'
 
+const UploadRoute = UploadRouteImport.update({
+  id: '/upload',
+  path: '/upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UnauthorizedRoute = UnauthorizedRouteImport.update({
+  id: '/unauthorized',
+  path: '/unauthorized',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedRoute = FeedRouteImport.update({
+  id: '/feed',
+  path: '/feed',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PhotoPhotoIdRoute = PhotoPhotoIdRouteImport.update({
+  id: '/photo/$photoId',
+  path: '/photo/$photoId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PhotoPhotoIdEditRoute = PhotoPhotoIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => PhotoPhotoIdRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/feed': typeof FeedRoute
+  '/login': typeof LoginRoute
+  '/search': typeof SearchRoute
+  '/unauthorized': typeof UnauthorizedRoute
+  '/upload': typeof UploadRoute
+  '/photo/$photoId': typeof PhotoPhotoIdRouteWithChildren
+  '/photo/$photoId/edit': typeof PhotoPhotoIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/feed': typeof FeedRoute
+  '/login': typeof LoginRoute
+  '/search': typeof SearchRoute
+  '/unauthorized': typeof UnauthorizedRoute
+  '/upload': typeof UploadRoute
+  '/photo/$photoId': typeof PhotoPhotoIdRouteWithChildren
+  '/photo/$photoId/edit': typeof PhotoPhotoIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/feed': typeof FeedRoute
+  '/login': typeof LoginRoute
+  '/search': typeof SearchRoute
+  '/unauthorized': typeof UnauthorizedRoute
+  '/upload': typeof UploadRoute
+  '/photo/$photoId': typeof PhotoPhotoIdRouteWithChildren
+  '/photo/$photoId/edit': typeof PhotoPhotoIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/feed'
+    | '/login'
+    | '/search'
+    | '/unauthorized'
+    | '/upload'
+    | '/photo/$photoId'
+    | '/photo/$photoId/edit'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/feed'
+    | '/login'
+    | '/search'
+    | '/unauthorized'
+    | '/upload'
+    | '/photo/$photoId'
+    | '/photo/$photoId/edit'
+  id:
+    | '__root__'
+    | '/'
+    | '/dashboard'
+    | '/feed'
+    | '/login'
+    | '/search'
+    | '/unauthorized'
+    | '/upload'
+    | '/photo/$photoId'
+    | '/photo/$photoId/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DashboardRoute: typeof DashboardRoute
+  FeedRoute: typeof FeedRoute
+  LoginRoute: typeof LoginRoute
+  SearchRoute: typeof SearchRoute
+  UnauthorizedRoute: typeof UnauthorizedRoute
+  UploadRoute: typeof UploadRoute
+  PhotoPhotoIdRoute: typeof PhotoPhotoIdRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/upload': {
+      id: '/upload'
+      path: '/upload'
+      fullPath: '/upload'
+      preLoaderRoute: typeof UploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/unauthorized': {
+      id: '/unauthorized'
+      path: '/unauthorized'
+      fullPath: '/unauthorized'
+      preLoaderRoute: typeof UnauthorizedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feed': {
+      id: '/feed'
+      path: '/feed'
+      fullPath: '/feed'
+      preLoaderRoute: typeof FeedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,21 +197,45 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/photo/$photoId': {
+      id: '/photo/$photoId'
+      path: '/photo/$photoId'
+      fullPath: '/photo/$photoId'
+      preLoaderRoute: typeof PhotoPhotoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/photo/$photoId/edit': {
+      id: '/photo/$photoId/edit'
+      path: '/edit'
+      fullPath: '/photo/$photoId/edit'
+      preLoaderRoute: typeof PhotoPhotoIdEditRouteImport
+      parentRoute: typeof PhotoPhotoIdRoute
+    }
   }
 }
 
+interface PhotoPhotoIdRouteChildren {
+  PhotoPhotoIdEditRoute: typeof PhotoPhotoIdEditRoute
+}
+
+const PhotoPhotoIdRouteChildren: PhotoPhotoIdRouteChildren = {
+  PhotoPhotoIdEditRoute: PhotoPhotoIdEditRoute,
+}
+
+const PhotoPhotoIdRouteWithChildren = PhotoPhotoIdRoute._addFileChildren(
+  PhotoPhotoIdRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DashboardRoute: DashboardRoute,
+  FeedRoute: FeedRoute,
+  LoginRoute: LoginRoute,
+  SearchRoute: SearchRoute,
+  UnauthorizedRoute: UnauthorizedRoute,
+  UploadRoute: UploadRoute,
+  PhotoPhotoIdRoute: PhotoPhotoIdRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
