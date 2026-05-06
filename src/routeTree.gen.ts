@@ -10,12 +10,20 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UnauthorizedRouteImport } from './routes/unauthorized'
+import { Route as SearchRouteImport } from './routes/search'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as FeedRouteImport } from './routes/feed'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PhotoPhotoIdRouteImport } from './routes/photo.$photoId'
 
 const UnauthorizedRoute = UnauthorizedRouteImport.update({
   id: '/unauthorized',
   path: '/unauthorized',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -23,40 +31,75 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FeedRoute = FeedRouteImport.update({
+  id: '/feed',
+  path: '/feed',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PhotoPhotoIdRoute = PhotoPhotoIdRouteImport.update({
+  id: '/photo/$photoId',
+  path: '/photo/$photoId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/feed': typeof FeedRoute
   '/login': typeof LoginRoute
+  '/search': typeof SearchRoute
   '/unauthorized': typeof UnauthorizedRoute
+  '/photo/$photoId': typeof PhotoPhotoIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/feed': typeof FeedRoute
   '/login': typeof LoginRoute
+  '/search': typeof SearchRoute
   '/unauthorized': typeof UnauthorizedRoute
+  '/photo/$photoId': typeof PhotoPhotoIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/feed': typeof FeedRoute
   '/login': typeof LoginRoute
+  '/search': typeof SearchRoute
   '/unauthorized': typeof UnauthorizedRoute
+  '/photo/$photoId': typeof PhotoPhotoIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/unauthorized'
+  fullPaths:
+    | '/'
+    | '/feed'
+    | '/login'
+    | '/search'
+    | '/unauthorized'
+    | '/photo/$photoId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/unauthorized'
-  id: '__root__' | '/' | '/login' | '/unauthorized'
+  to: '/' | '/feed' | '/login' | '/search' | '/unauthorized' | '/photo/$photoId'
+  id:
+    | '__root__'
+    | '/'
+    | '/feed'
+    | '/login'
+    | '/search'
+    | '/unauthorized'
+    | '/photo/$photoId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  FeedRoute: typeof FeedRoute
   LoginRoute: typeof LoginRoute
+  SearchRoute: typeof SearchRoute
   UnauthorizedRoute: typeof UnauthorizedRoute
+  PhotoPhotoIdRoute: typeof PhotoPhotoIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -68,11 +111,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UnauthorizedRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feed': {
+      id: '/feed'
+      path: '/feed'
+      fullPath: '/feed'
+      preLoaderRoute: typeof FeedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -82,13 +139,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/photo/$photoId': {
+      id: '/photo/$photoId'
+      path: '/photo/$photoId'
+      fullPath: '/photo/$photoId'
+      preLoaderRoute: typeof PhotoPhotoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  FeedRoute: FeedRoute,
   LoginRoute: LoginRoute,
+  SearchRoute: SearchRoute,
   UnauthorizedRoute: UnauthorizedRoute,
+  PhotoPhotoIdRoute: PhotoPhotoIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
