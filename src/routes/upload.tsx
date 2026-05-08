@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Field } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { LocationAutocomplete } from "@/components/ui/autocompleteInput";
 
 export const Route = createFileRoute("/upload")({
   component: () => (
@@ -136,7 +137,7 @@ function UploadPage() {
           ) : (
             <label
               htmlFor="file"
-              className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-3xl border-2 border-dashed border-border bg-card text-center transition-colors hover:border-primary hover:bg-muted"
+              className="pl-3 flex aspect-square cursor-pointer flex-col items-center justify-center rounded-3xl border-2 border-dashed border-border bg-card text-center transition-colors hover:border-primary hover:bg-muted"
             >
               <ImagePlus className="h-10 w-10 text-muted-foreground" />
               <span className="mt-3 font-medium">Click to choose an image</span>
@@ -211,13 +212,15 @@ function UploadPage() {
             </p> */}
           </Field>
           <Field label="Location">
-            <Input
+            <LocationAutocomplete
               value={form.location}
-              onChange={(e) => setForm({ ...form, location: e.target.value })}
+              onChange={(address) => setForm({ ...form, location: address })}
               placeholder="Dolomites, Italy"
               maxLength={120}
+              // className={/* pass whatever className your <Input> uses */}
             />
           </Field>
+
           <Field label="People" hint="Comma-separated names of people in the photo">
             <Input
               value={form.people}
