@@ -6,17 +6,13 @@
  * a 1:1 counterpart in the documented REST contract (/docs/api.md).
  */
 
-import type { Comment, Photo, Rating, User } from "./types";
-
 const SEED_PHOTOS: Photo[] = [
   {
     id: "p_1",
     ownerId: "u_creator",
     ownerName: "Maya Chen",
-    imageUrl:
-      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1600&q=80",
-    thumbnailUrl:
-      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=70",
+    imageUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1600&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=70",
     title: "Alpine Solitude",
     caption: "First light over the Dolomites — three hours of switchbacks well spent.",
     location: "Dolomites, Italy",
@@ -31,10 +27,8 @@ const SEED_PHOTOS: Photo[] = [
     id: "p_2",
     ownerId: "u_creator",
     ownerName: "Maya Chen",
-    imageUrl:
-      "https://images.unsplash.com/photo-1493514789931-586cb221d7a7?w=1600&q=80",
-    thumbnailUrl:
-      "https://images.unsplash.com/photo-1493514789931-586cb221d7a7?w=600&q=70",
+    imageUrl: "https://images.unsplash.com/photo-1493514789931-586cb221d7a7?w=1600&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1493514789931-586cb221d7a7?w=600&q=70",
     title: "Tokyo After Rain",
     caption: "Neon reflections in Shinjuku puddles.",
     location: "Shinjuku, Tokyo",
@@ -49,10 +43,8 @@ const SEED_PHOTOS: Photo[] = [
     id: "p_3",
     ownerId: "u_creator2",
     ownerName: "Ava Romero",
-    imageUrl:
-      "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1600&q=80",
-    thumbnailUrl:
-      "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600&q=70",
+    imageUrl: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1600&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600&q=70",
     title: "Golden Hour",
     caption: "The forest got quiet right at 18:42.",
     location: "Olympic National Park, WA",
@@ -67,10 +59,8 @@ const SEED_PHOTOS: Photo[] = [
     id: "p_4",
     ownerId: "u_creator2",
     ownerName: "Ava Romero",
-    imageUrl:
-      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1600&q=80",
-    thumbnailUrl:
-      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=600&q=70",
+    imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1600&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=600&q=70",
     title: "Coastal Drift",
     caption: "Long exposure on the Oregon coast.",
     location: "Cannon Beach, Oregon",
@@ -85,10 +75,8 @@ const SEED_PHOTOS: Photo[] = [
     id: "p_5",
     ownerId: "u_creator",
     ownerName: "Maya Chen",
-    imageUrl:
-      "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1600&q=80",
-    thumbnailUrl:
-      "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600&q=70",
+    imageUrl: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1600&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600&q=70",
     title: "Glacier Lake",
     caption: "Glassy water, no wind, no people.",
     location: "Banff, Canada",
@@ -103,10 +91,8 @@ const SEED_PHOTOS: Photo[] = [
     id: "p_6",
     ownerId: "u_creator2",
     ownerName: "Ava Romero",
-    imageUrl:
-      "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=1600&q=80",
-    thumbnailUrl:
-      "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=600&q=70",
+    imageUrl: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=1600&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=600&q=70",
     title: "Late Night Diner",
     caption: "Hopper would have liked this booth.",
     location: "Brooklyn, NY",
@@ -119,7 +105,7 @@ const SEED_PHOTOS: Photo[] = [
   },
 ];
 
-const SEED_COMMENTS: Comment[] = [
+const SEED_COMMENTS = [
   {
     id: "c_1",
     photoId: "p_2",
@@ -136,12 +122,12 @@ const SEED_COMMENTS: Comment[] = [
     body: "Saving this for inspiration.",
     createdAt: "2025-03-29T11:22:00Z",
   },
-];
+] as Comment[];
 
-const KEY_PHOTOS = "pixly:photos";
-const KEY_COMMENTS = "pixly:comments";
-const KEY_RATINGS = "pixly:ratings";
-const KEY_USER = "pixly:user";
+const KEY_PHOTOS = "deelish:photos";
+const KEY_COMMENTS = "deelish:comments";
+const KEY_RATINGS = "deelish:ratings";
+const KEY_USER = "deelish:user";
 
 function isBrowser() {
   return typeof window !== "undefined" && typeof localStorage !== "undefined";
@@ -192,13 +178,13 @@ export const store = {
 export const DEMO_USERS: Record<string, User> = {
   creator: {
     id: "u_creator",
-    email: "maya@pixly.app",
+    email: "maya@deelish.app",
     displayName: "Maya Chen",
     role: "creator",
   },
   consumer: {
     id: "u_consumer",
-    email: "jordan@pixly.app",
+    email: "jordan@deelish.app",
     displayName: "Jordan Lee",
     role: "consumer",
   },

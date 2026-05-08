@@ -9,15 +9,6 @@
  */
 
 import { store } from "./mock-data";
-import type {
-  Comment,
-  PaginatedResult,
-  Photo,
-  UpdatePhotoInput,
-  UploadPhotoInput,
-  User,
-} from "./types";
-
 function delay<T>(value: T, ms = 250): Promise<T> {
   return new Promise((r) => setTimeout(() => r(value), ms));
 }
@@ -30,12 +21,14 @@ function uid(prefix: string) {
 
 export const api = {
   /** GET /api/photos?page=&pageSize=&q= */
-  async listPhotos(opts: {
-    page?: number;
-    pageSize?: number;
-    q?: string;
-    ownerId?: string;
-  } = {}): Promise<PaginatedResult<Photo>> {
+  async listPhotos(
+    opts: {
+      page?: number;
+      pageSize?: number;
+      q?: string;
+      ownerId?: string;
+    } = {},
+  ): Promise<PaginatedResult<Photo>> {
     const { page = 1, pageSize = 12, q, ownerId } = opts;
     let items = store.getPhotos();
     if (ownerId) items = items.filter((p) => p.ownerId === ownerId);
@@ -50,9 +43,7 @@ export const api = {
           .includes(needle),
       );
     }
-    items = items.sort(
-      (a, b) => +new Date(b.createdAt) - +new Date(a.createdAt),
-    );
+    items = items.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
     const total = items.length;
     const start = (page - 1) * pageSize;
     return delay({
@@ -108,11 +99,7 @@ export const api = {
   },
 
   /** PATCH /api/photos/:id — owner only */
-  async updatePhoto(
-    id: string,
-    patch: UpdatePhotoInput,
-    actor: User,
-  ): Promise<Photo> {
+  async updatePhoto(id: string, patch: UpdatePhotoInput, actor: User): Promise<Photo> {
     const photos = store.getPhotos();
     const idx = photos.findIndex((p) => p.id === id);
     if (idx === -1) throw new Error("Photo not found");
@@ -150,15 +137,11 @@ export const api = {
   },
 
   /** POST /api/photos/:id/comments — auth required */
-  async addComment(
-    photoId: string,
-    body: string,
-    author: User,
-  ): Promise<Comment> {
+  async addComment(photoId: string, body: string, author: User): Promise<Comment> {
     const trimmed = body.trim();
     if (!trimmed) throw new Error("Comment cannot be empty");
     if (trimmed.length > 1000) throw new Error("Comment too long (max 1000)");
-    const comment: Comment = {
+    const comment = {
       id: uid("c"),
       photoId,
       authorId: author.id,
@@ -166,7 +149,7 @@ export const api = {
       authorAvatarUrl: author.avatarUrl,
       body: trimmed,
       createdAt: new Date().toISOString(),
-    };
+    } as Comment;
     store.setComments([...store.getComments(), comment]);
 
     // Bump comment counter on the photo for feed display.
@@ -183,23 +166,15 @@ export const api = {
 
   /** GET /api/photos/:id/ratings/me */
   async getMyRating(photoId: string, userId: string): Promise<number | null> {
-    const r = store.getRatings().find(
-      (x) => x.photoId === photoId && x.userId === userId,
-    );
+    const r = store.getRatings().find((x) => x.photoId === photoId && x.userId === userId);
     return delay(r ? r.value : null);
   },
 
   /** PUT /api/photos/:id/ratings — auth required */
-  async ratePhoto(
-    photoId: string,
-    value: number,
-    user: User,
-  ): Promise<Photo> {
+  async ratePhoto(photoId: string, value: number, user: User): Promise<Photo> {
     if (value < 1 || value > 5) throw new Error("Rating must be 1–5");
     const ratings = store.getRatings();
-    const existingIdx = ratings.findIndex(
-      (r) => r.photoId === photoId && r.userId === user.id,
-    );
+    const existingIdx = ratings.findIndex((r) => r.photoId === photoId && r.userId === user.id);
     if (existingIdx >= 0) ratings[existingIdx].value = value;
     else ratings.push({ photoId, userId: user.id, value });
     store.setRatings(ratings);
@@ -209,8 +184,7 @@ export const api = {
     const idx = photos.findIndex((p) => p.id === photoId);
     if (idx === -1) throw new Error("Photo not found");
     const photoRatings = ratings.filter((r) => r.photoId === photoId);
-    const avg =
-      photoRatings.reduce((s, r) => s + r.value, 0) / photoRatings.length;
+    const avg = photoRatings.reduce((s, r) => s + r.value, 0) / photoRatings.length;
     photos[idx] = {
       ...photos[idx],
       ratingAvg: Math.round(avg * 10) / 10,

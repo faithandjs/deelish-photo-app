@@ -12,7 +12,7 @@ export const Route = createFileRoute("/feed")({
   component: FeedPage,
   head: () => ({
     meta: [
-      { title: "Browse — Pixly" },
+      { title: "Browse — Deelish" },
       {
         name: "description",
         content: "Discover photos from creators around the world.",
@@ -30,8 +30,7 @@ function FeedPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ["photos", { page, q: submittedQ }],
-    queryFn: () =>
-      api.listPhotos({ page, pageSize: PAGE_SIZE, q: submittedQ || undefined }),
+    queryFn: () => api.listPhotos({ page, pageSize: PAGE_SIZE, q: submittedQ || undefined }),
   });
 
   // Reset to page 1 when search changes.
@@ -45,12 +44,8 @@ function FeedPage() {
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Browse
-          </h1>
-          <p className="mt-1 text-muted-foreground">
-            The latest from every creator.
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Browse</h1>
+          <p className="mt-1 text-muted-foreground">The latest from every creator.</p>
         </div>
         <form
           onSubmit={(e) => {
@@ -89,11 +84,7 @@ function FeedPage() {
 
           {totalPages > 1 && (
             <div className="mt-10 flex items-center justify-center gap-2">
-              <Button
-                variant="outline"
-                disabled={page === 1}
-                onClick={() => setPage((p) => p - 1)}
-              >
+              <Button variant="outline" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
                 Previous
               </Button>
               <span className="px-4 text-sm text-muted-foreground">

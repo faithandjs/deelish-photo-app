@@ -24,7 +24,7 @@ export const Route = createFileRoute("/dashboard")({
       <DashboardPage />
     </RequireRole>
   ),
-  head: () => ({ meta: [{ title: "Dashboard — Pixly" }] }),
+  head: () => ({ meta: [{ title: "Dashboard — Deelish" }] }),
 });
 
 function DashboardPage() {
@@ -33,8 +33,7 @@ function DashboardPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ["my-photos", user?.id],
-    queryFn: () =>
-      api.listPhotos({ ownerId: user!.id, pageSize: 100 }),
+    queryFn: () => api.listPhotos({ ownerId: user!.id, pageSize: 100 }),
     enabled: !!user,
   });
 
@@ -64,10 +63,7 @@ function DashboardPage() {
             Manage your library, track engagement, and upload new work.
           </p>
         </div>
-        <Button
-          asChild
-          className="bg-gradient-primary border-0 shadow-elegant hover:opacity-90"
-        >
+        <Button asChild className="bg-gradient-primary border-0 shadow-elegant hover:opacity-90">
           <Link to="/upload">
             <Plus className="mr-1.5 h-4 w-4" /> New upload
           </Link>
@@ -78,7 +74,11 @@ function DashboardPage() {
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
         <StatCard label="Photos" value={photos.length} icon={<ImageIcon className="h-5 w-5" />} />
         <StatCard label="Total ratings" value={totalRatings} icon={<Star className="h-5 w-5" />} />
-        <StatCard label="Total comments" value={totalComments} icon={<Edit3 className="h-5 w-5" />} />
+        <StatCard
+          label="Total comments"
+          value={totalComments}
+          icon={<Edit3 className="h-5 w-5" />}
+        />
       </div>
 
       {/* Library */}
@@ -103,7 +103,7 @@ function DashboardPage() {
                 <Link
                   to="/photo/$photoId"
                   params={{ photoId: p.id }}
-                  className="block aspect-[4/3] overflow-hidden"
+                  className="block aspect-4/3 overflow-hidden"
                 >
                   <img
                     src={p.thumbnailUrl}
@@ -123,16 +123,8 @@ function DashboardPage() {
                       {p.ratingAvg.toFixed(1)} ({p.ratingCount})
                     </span>
                     <div className="flex items-center gap-1">
-                      <Button
-                        asChild
-                        size="sm"
-                        variant="ghost"
-                        className="h-8 px-2"
-                      >
-                        <Link
-                          to="/photo/$photoId/edit"
-                          params={{ photoId: p.id }}
-                        >
+                      <Button asChild size="sm" variant="ghost" className="h-8 px-2">
+                        <Link to="/photo/$photoId/edit" params={{ photoId: p.id }}>
                           <Edit3 className="h-3.5 w-3.5" />
                         </Link>
                       </Button>
@@ -176,15 +168,7 @@ function DashboardPage() {
   );
 }
 
-function StatCard({
-  label,
-  value,
-  icon,
-}: {
-  label: string;
-  value: number;
-  icon: React.ReactNode;
-}) {
+function StatCard({ label, value, icon }: { label: string; value: number; icon: React.ReactNode }) {
   return (
     <div className="rounded-2xl border border-border bg-card p-5 shadow-soft">
       <div className="flex items-center justify-between text-muted-foreground">
@@ -204,10 +188,7 @@ function EmptyLibrary() {
       <p className="mt-2 max-w-sm text-sm text-muted-foreground">
         Upload your first photo to start building your library.
       </p>
-      <Button
-        asChild
-        className="mt-6 bg-gradient-primary border-0 hover:opacity-90"
-      >
+      <Button asChild className="mt-6 bg-gradient-primary border-0 hover:opacity-90">
         <Link to="/upload">
           <Plus className="mr-1.5 h-4 w-4" /> Upload a photo
         </Link>

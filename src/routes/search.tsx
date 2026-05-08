@@ -15,11 +15,10 @@ export const Route = createFileRoute("/search")({
   }),
   head: () => ({
     meta: [
-      { title: "Search — Pixly" },
+      { title: "Search — Deelish" },
       {
         name: "description",
-        content:
-          "Search photos by title, caption, location, people, or tags.",
+        content: "Search photos by title, caption, location, people, or tags.",
       },
     ],
   }),
@@ -71,10 +70,7 @@ function SearchPage() {
               maxLength={200}
             />
           </div>
-          <Button
-            type="submit"
-            className="h-12 px-6 bg-gradient-primary border-0 hover:opacity-90"
-          >
+          <Button type="submit" className="h-12 px-6 bg-gradient-primary border-0 hover:opacity-90">
             Search
           </Button>
         </form>
@@ -115,9 +111,7 @@ function SearchPage() {
             ))}
           </div>
         ) : search.q ? (
-          <p className="py-12 text-center text-muted-foreground">
-            Nothing matches that query yet.
-          </p>
+          <p className="py-12 text-center text-muted-foreground">Nothing matches that query yet.</p>
         ) : null}
       </div>
     </div>

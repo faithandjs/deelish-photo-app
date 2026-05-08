@@ -1,4 +1,4 @@
-# Pixly — System Architecture
+# Deelish — System Architecture
 
 > Frontend (this repo) is wired against a typed API contract.
 > The Azure backend described here lives in a separate repo.
@@ -51,19 +51,19 @@
 
 ## Components
 
-| Concern              | Service                                |
-| -------------------- | -------------------------------------- |
-| Authentication       | Azure AD B2C                           |
-| Authorization        | JWT claims + server middleware         |
-| API                  | Node.js (Express/Fastify) or .NET      |
-| Image storage        | Azure Blob Storage + Azure CDN         |
-| Image AI             | Azure Cognitive Services — Computer Vision |
-| Metadata DB          | Azure SQL (relational) or Cosmos DB    |
-| Search               | Elasticsearch (or Azure AI Search)     |
-| Cache / rate limit   | Azure Redis Cache                      |
-| Realtime comments    | Azure Web PubSub or SignalR            |
-| Background jobs      | Azure Functions                        |
-| Observability        | Application Insights                   |
+| Concern            | Service                                    |
+| ------------------ | ------------------------------------------ |
+| Authentication     | Azure AD B2C                               |
+| Authorization      | JWT claims + server middleware             |
+| API                | Node.js (Express/Fastify) or .NET          |
+| Image storage      | Azure Blob Storage + Azure CDN             |
+| Image AI           | Azure Cognitive Services — Computer Vision |
+| Metadata DB        | Azure SQL (relational) or Cosmos DB        |
+| Search             | Elasticsearch (or Azure AI Search)         |
+| Cache / rate limit | Azure Redis Cache                          |
+| Realtime comments  | Azure Web PubSub or SignalR                |
+| Background jobs    | Azure Functions                            |
+| Observability      | Application Insights                       |
 
 ## Upload pipeline (creator)
 

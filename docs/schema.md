@@ -1,4 +1,4 @@
-# Pixly — Database Schema (Azure SQL)
+# Deelish — Database Schema (Azure SQL)
 
 ```sql
 -- =====================================================
@@ -116,17 +116,16 @@ denormalised for fast feed queries. Maintained via:
 {
   "mappings": {
     "properties": {
-      "id":         { "type": "keyword" },
-      "owner_id":   { "type": "keyword" },
-      "title":      { "type": "text", "boost": 3 },
-      "caption":    { "type": "text" },
-      "location":   { "type": "text", "boost": 2,
-                      "fields": { "kw": { "type": "keyword" } } },
-      "people":     { "type": "text", "boost": 2 },
-      "tags":       { "type": "keyword" },
+      "id": { "type": "keyword" },
+      "owner_id": { "type": "keyword" },
+      "title": { "type": "text", "boost": 3 },
+      "caption": { "type": "text" },
+      "location": { "type": "text", "boost": 2, "fields": { "kw": { "type": "keyword" } } },
+      "people": { "type": "text", "boost": 2 },
+      "tags": { "type": "keyword" },
       "rating_avg": { "type": "half_float" },
-      "created_at": { "type": "date" }
-    }
-  }
+      "created_at": { "type": "date" },
+    },
+  },
 }
 ```

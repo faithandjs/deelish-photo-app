@@ -11,12 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UploadRouteImport } from './routes/upload'
 import { Route as UnauthorizedRouteImport } from './routes/unauthorized'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as FeedRouteImport } from './routes/feed'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as PhotoPhotoIdRouteImport } from './routes/photo.$photoId'
+import { Route as PhotoPhotoIdRouteImport } from './routes/photo.$photoId_'
 import { Route as PhotoPhotoIdEditRouteImport } from './routes/photo.$photoId.edit'
 
 const UploadRoute = UploadRouteImport.update({
@@ -27,6 +28,11 @@ const UploadRoute = UploadRouteImport.update({
 const UnauthorizedRoute = UnauthorizedRouteImport.update({
   id: '/unauthorized',
   path: '/unauthorized',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SearchRoute = SearchRouteImport.update({
@@ -55,14 +61,14 @@ const IndexRoute = IndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const PhotoPhotoIdRoute = PhotoPhotoIdRouteImport.update({
-  id: '/photo/$photoId',
+  id: '/photo/$photoId_',
   path: '/photo/$photoId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PhotoPhotoIdEditRoute = PhotoPhotoIdEditRouteImport.update({
-  id: '/edit',
-  path: '/edit',
-  getParentRoute: () => PhotoPhotoIdRoute,
+  id: '/photo/$photoId/edit',
+  path: '/photo/$photoId/edit',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -71,9 +77,10 @@ export interface FileRoutesByFullPath {
   '/feed': typeof FeedRoute
   '/login': typeof LoginRoute
   '/search': typeof SearchRoute
+  '/signup': typeof SignupRoute
   '/unauthorized': typeof UnauthorizedRoute
   '/upload': typeof UploadRoute
-  '/photo/$photoId': typeof PhotoPhotoIdRouteWithChildren
+  '/photo/$photoId': typeof PhotoPhotoIdRoute
   '/photo/$photoId/edit': typeof PhotoPhotoIdEditRoute
 }
 export interface FileRoutesByTo {
@@ -82,9 +89,10 @@ export interface FileRoutesByTo {
   '/feed': typeof FeedRoute
   '/login': typeof LoginRoute
   '/search': typeof SearchRoute
+  '/signup': typeof SignupRoute
   '/unauthorized': typeof UnauthorizedRoute
   '/upload': typeof UploadRoute
-  '/photo/$photoId': typeof PhotoPhotoIdRouteWithChildren
+  '/photo/$photoId': typeof PhotoPhotoIdRoute
   '/photo/$photoId/edit': typeof PhotoPhotoIdEditRoute
 }
 export interface FileRoutesById {
@@ -94,9 +102,10 @@ export interface FileRoutesById {
   '/feed': typeof FeedRoute
   '/login': typeof LoginRoute
   '/search': typeof SearchRoute
+  '/signup': typeof SignupRoute
   '/unauthorized': typeof UnauthorizedRoute
   '/upload': typeof UploadRoute
-  '/photo/$photoId': typeof PhotoPhotoIdRouteWithChildren
+  '/photo/$photoId_': typeof PhotoPhotoIdRoute
   '/photo/$photoId/edit': typeof PhotoPhotoIdEditRoute
 }
 export interface FileRouteTypes {
@@ -107,6 +116,7 @@ export interface FileRouteTypes {
     | '/feed'
     | '/login'
     | '/search'
+    | '/signup'
     | '/unauthorized'
     | '/upload'
     | '/photo/$photoId'
@@ -118,6 +128,7 @@ export interface FileRouteTypes {
     | '/feed'
     | '/login'
     | '/search'
+    | '/signup'
     | '/unauthorized'
     | '/upload'
     | '/photo/$photoId'
@@ -129,9 +140,10 @@ export interface FileRouteTypes {
     | '/feed'
     | '/login'
     | '/search'
+    | '/signup'
     | '/unauthorized'
     | '/upload'
-    | '/photo/$photoId'
+    | '/photo/$photoId_'
     | '/photo/$photoId/edit'
   fileRoutesById: FileRoutesById
 }
@@ -141,9 +153,11 @@ export interface RootRouteChildren {
   FeedRoute: typeof FeedRoute
   LoginRoute: typeof LoginRoute
   SearchRoute: typeof SearchRoute
+  SignupRoute: typeof SignupRoute
   UnauthorizedRoute: typeof UnauthorizedRoute
   UploadRoute: typeof UploadRoute
-  PhotoPhotoIdRoute: typeof PhotoPhotoIdRouteWithChildren
+  PhotoPhotoIdRoute: typeof PhotoPhotoIdRoute
+  PhotoPhotoIdEditRoute: typeof PhotoPhotoIdEditRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -160,6 +174,13 @@ declare module '@tanstack/react-router' {
       path: '/unauthorized'
       fullPath: '/unauthorized'
       preLoaderRoute: typeof UnauthorizedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/search': {
@@ -197,8 +218,8 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/photo/$photoId': {
-      id: '/photo/$photoId'
+    '/photo/$photoId_': {
+      id: '/photo/$photoId_'
       path: '/photo/$photoId'
       fullPath: '/photo/$photoId'
       preLoaderRoute: typeof PhotoPhotoIdRouteImport
@@ -206,25 +227,13 @@ declare module '@tanstack/react-router' {
     }
     '/photo/$photoId/edit': {
       id: '/photo/$photoId/edit'
-      path: '/edit'
+      path: '/photo/$photoId/edit'
       fullPath: '/photo/$photoId/edit'
       preLoaderRoute: typeof PhotoPhotoIdEditRouteImport
-      parentRoute: typeof PhotoPhotoIdRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
-
-interface PhotoPhotoIdRouteChildren {
-  PhotoPhotoIdEditRoute: typeof PhotoPhotoIdEditRoute
-}
-
-const PhotoPhotoIdRouteChildren: PhotoPhotoIdRouteChildren = {
-  PhotoPhotoIdEditRoute: PhotoPhotoIdEditRoute,
-}
-
-const PhotoPhotoIdRouteWithChildren = PhotoPhotoIdRoute._addFileChildren(
-  PhotoPhotoIdRouteChildren,
-)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -232,10 +241,21 @@ const rootRouteChildren: RootRouteChildren = {
   FeedRoute: FeedRoute,
   LoginRoute: LoginRoute,
   SearchRoute: SearchRoute,
+  SignupRoute: SignupRoute,
   UnauthorizedRoute: UnauthorizedRoute,
   UploadRoute: UploadRoute,
-  PhotoPhotoIdRoute: PhotoPhotoIdRouteWithChildren,
+  PhotoPhotoIdRoute: PhotoPhotoIdRoute,
+  PhotoPhotoIdEditRoute: PhotoPhotoIdEditRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

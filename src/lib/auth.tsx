@@ -24,7 +24,6 @@ import {
 } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { DEMO_USERS, store } from "./mock-data";
-import type { User, UserRole } from "./types";
 
 interface AuthContextValue {
   user: User | null;
@@ -55,10 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
-  const hasRole = useCallback(
-    (role: UserRole) => user?.role === role,
-    [user],
-  );
+  const hasRole = useCallback((role: UserRole) => user?.role === role, [user]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -89,13 +85,7 @@ export function useAuth() {
  * localStorage in this demo. With Azure B2C you'd move the check to
  * `beforeLoad` reading from router context.
  */
-export function RequireRole({
-  role,
-  children,
-}: {
-  role: UserRole;
-  children: ReactNode;
-}) {
+export function RequireRole({ role, children }: { role: UserRole; children: ReactNode }) {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [checked, setChecked] = useState(false);

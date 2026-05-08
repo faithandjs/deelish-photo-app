@@ -4,9 +4,9 @@
  * and the database schema in /docs/schema.md.
  */
 
-export type UserRole = "creator" | "consumer";
+type UserRole = "creator" | "consumer";
 
-export interface User {
+interface User {
   id: string;
   email: string;
   displayName: string;
@@ -14,7 +14,7 @@ export interface User {
   role: UserRole;
 }
 
-export interface Photo {
+interface Photo {
   id: string;
   ownerId: string;
   ownerName: string;
@@ -36,7 +36,7 @@ export interface Photo {
   commentCount: number;
 }
 
-export interface Comment {
+interface Comment {
   id: string;
   photoId: string;
   authorId: string;
@@ -46,14 +46,14 @@ export interface Comment {
   createdAt: string;
 }
 
-export interface Rating {
+interface Rating {
   photoId: string;
   userId: string;
   /** 1–5 stars. */
   value: number;
 }
 
-export interface UploadPhotoInput {
+interface UploadPhotoInput {
   file: File;
   title: string;
   caption: string;
@@ -61,7 +61,7 @@ export interface UploadPhotoInput {
   people: string[];
 }
 
-export interface UpdatePhotoInput {
+interface UpdatePhotoInput {
   title?: string;
   caption?: string;
   location?: string;
@@ -69,7 +69,7 @@ export interface UpdatePhotoInput {
   tags?: string[];
 }
 
-export interface PaginatedResult<T> {
+interface PaginatedResult<T> {
   items: T[];
   page: number;
   pageSize: number;

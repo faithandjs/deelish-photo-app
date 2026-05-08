@@ -1,9 +1,4 @@
-import {
-  Outlet,
-  createRootRoute,
-  HeadContent,
-  Scripts,
-} from "@tanstack/react-router";
+import { Outlet, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/lib/auth";
 import { Header } from "@/components/layout/Header";
@@ -40,17 +35,15 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Pixly — Share what you see" },
+      { title: "Deelish — Share what you see" },
       {
         name: "description",
-        content:
-          "A modern photo platform for creators and the people who love their work.",
+        content: "A modern photo platform for creators and the people who love their work.",
       },
-      { property: "og:title", content: "Pixly — Share what you see" },
+      { property: "og:title", content: "Deelish — Share what you see" },
       {
         property: "og:description",
-        content:
-          "A modern photo platform for creators and the people who love their work.",
+        content: "A modern photo platform for creators and the people who love their work.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

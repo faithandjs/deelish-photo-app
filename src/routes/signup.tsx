@@ -8,10 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Copy } from "@/components/ui/icons/copy";
 import { Auth } from "@/components/layout/Auth";
 
-export const Route = createFileRoute("/login")({
+export const Route = createFileRoute("/signup")({
   component: LoginPage,
   head: () => ({
-    meta: [{ title: "Sign in — Deelish" }],
+    meta: [{ title: "Sign up — Deelish" }],
   }),
 });
 
@@ -44,6 +44,33 @@ function LoginPage() {
         }}
         className=""
       >
+        <div className="mt-8 space-y-3 flex gap-3 w-full *:w-1/2">
+          {(
+            [
+              {
+                role: "consumer",
+                icon: Users,
+              },
+              {
+                role: "creator",
+                icon: Camera,
+              },
+            ] as const
+          ).map(({ role, ...props }) => (
+            <Button
+              key={role}
+              type="button"
+              onClick={() => {
+                setForm((p) => ({ ...p, role }));
+              }}
+              variant={"outline"}
+              className={`h-14 justify-start gap-3 transition-all *:transition-all  ${form.role === role ? "text-gradient border-[#f84c41] hover:text-gradient" : "hover:bg-muted "}`}
+            >
+              <props.icon className={`"h-5 w-5 ${form.role === role && "stroke-[#f84c41]"}`} />
+              <div className="font-semibold capitalize"> {role}</div>
+            </Button>
+          ))}
+        </div>
         <div className="space-y-5 pb-5">
           <Field label="Name" required>
             <Input
@@ -64,10 +91,18 @@ function LoginPage() {
               required
               type="password"
             />
+            <div
+              className={` px-2 ${form.password.length > 0 ? "flex justify-between gap-3 items-center" : "hidden"}`}
+            >
+              <p className="text-xs text-muted-foreground italic">{form.password}</p>
+              <button type="button">
+                <Copy />
+              </button>
+            </div>
           </Field>
         </div>
         <Button className="w-full h-14 bg-gradient-primary hover:opacity-90 font-semibold">
-          Login
+          Sign up
         </Button>
       </form>
     </Auth>

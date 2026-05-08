@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/unauthorized")({
   component: UnauthorizedPage,
-  head: () => ({ meta: [{ title: "Unauthorized — Pixly" }] }),
+  head: () => ({ meta: [{ title: "Unauthorized — Deelish" }] }),
 });
 
 function UnauthorizedPage() {
@@ -16,8 +16,8 @@ function UnauthorizedPage() {
         </div>
         <h1 className="mt-5 text-2xl font-bold">Access denied</h1>
         <p className="mt-2 text-muted-foreground">
-          Your role doesn't have permission to view that page. Creator-only
-          areas are protected by route guards and server-side checks.
+          Your role doesn't have permission to view that page. Creator-only areas are protected by
+          route guards and server-side checks.
         </p>
         <div className="mt-6 flex justify-center gap-3">
           <Button asChild variant="outline">

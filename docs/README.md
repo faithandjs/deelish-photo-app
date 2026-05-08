@@ -1,4 +1,4 @@
-# Pixly
+# Deelish
 
 A modern photo-sharing platform with two distinct roles.
 
@@ -30,17 +30,17 @@ becomes Azure AD B2C `loginRedirect`.
 
 ## Routes
 
-| Path                       | Role        | Purpose                                   |
-| -------------------------- | ----------- | ----------------------------------------- |
-| `/`                        | public      | Landing page                              |
-| `/login`                   | public      | Role-pick (B2C in prod)                   |
-| `/feed`                    | public      | Paginated browse                          |
-| `/search`                  | public      | Full-text search                          |
-| `/photo/:id`               | public      | Photo detail + comments + ratings         |
-| `/dashboard`               | **creator** | Library management + stats                |
-| `/upload`                  | **creator** | Upload form                               |
-| `/photo/:id/edit`          | **creator** | Edit metadata + tags (owner only)         |
-| `/unauthorized`            | public      | Shown when role check fails               |
+| Path              | Role        | Purpose                           |
+| ----------------- | ----------- | --------------------------------- |
+| `/`               | public      | Landing page                      |
+| `/login`          | public      | Role-pick (B2C in prod)           |
+| `/feed`           | public      | Paginated browse                  |
+| `/search`         | public      | Full-text search                  |
+| `/photo/:id`      | public      | Photo detail + comments + ratings |
+| `/dashboard`      | **creator** | Library management + stats        |
+| `/upload`         | **creator** | Upload form                       |
+| `/photo/:id/edit` | **creator** | Edit metadata + tags (owner only) |
+| `/unauthorized`   | public      | Shown when role check fails       |
 
 ## Security model
 

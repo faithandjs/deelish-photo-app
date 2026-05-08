@@ -23,7 +23,8 @@ export function Header() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-
+  const isLogin = pathname === "/login";
+  console.log(pathname);
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -32,11 +33,18 @@ export function Header() {
             <Camera className="h-5 w-5 text-primary-foreground" />
           </div>
           <span className="text-xl font-bold tracking-tight">
-            Pix<span className="text-gradient">ly</span>
+            Dee<span className="text-gradient">lish</span>
           </span>
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">
+          {user?.role === "creator" && (
+            <>
+              <NavLink to="/dashboard" active={pathname.startsWith("/dashboard")}>
+                Dashboard
+              </NavLink>
+            </>
+          )}{" "}
           <NavLink to="/feed" active={pathname.startsWith("/feed")}>
             <ImageIcon className="h-4 w-4" /> Browse
           </NavLink>
@@ -45,12 +53,6 @@ export function Header() {
           </NavLink>
           {user?.role === "creator" && (
             <>
-              <NavLink
-                to="/dashboard"
-                active={pathname.startsWith("/dashboard")}
-              >
-                Dashboard
-              </NavLink>
               <NavLink to="/upload" active={pathname.startsWith("/upload")}>
                 <Upload className="h-4 w-4" /> Upload
               </NavLink>
@@ -72,10 +74,7 @@ export function Header() {
                         .slice(0, 2)}
                     </AvatarFallback>
                   </Avatar>
-                  <Badge
-                    variant="secondary"
-                    className="hidden sm:inline-flex capitalize"
-                  >
+                  <Badge variant="secondary" className="hidden sm:inline-flex capitalize">
                     {user.role}
                   </Badge>
                 </button>
@@ -83,9 +82,7 @@ export function Header() {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>
                   <div className="font-medium">{user.displayName}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {user.email}
-                  </div>
+                  <div className="text-xs text-muted-foreground">{user.email}</div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -99,8 +96,12 @@ export function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button asChild variant="default" className="bg-gradient-primary border-0 shadow-elegant hover:opacity-90">
-              <Link to="/login">Sign in</Link>
+            <Button
+              asChild
+              variant="default"
+              className="bg-gradient-primary border-0 shadow-elegant hover:opacity-90"
+            >
+              {isLogin ? <Link to="/signup">Sign up</Link> : <Link to="/login">Login</Link>}
             </Button>
           )}
         </div>

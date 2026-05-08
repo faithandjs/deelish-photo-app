@@ -12,12 +12,13 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export const Route = createFileRoute("/photo/$photoId")({
+export const Route = createFileRoute("/photo/$photoId_")({
   component: PhotoDetailPage,
-  head: () => ({ meta: [{ title: "Photo — Pixly" }] }),
+  head: () => ({ meta: [{ title: "Photo — Deelish" }] }),
 });
 
 function PhotoDetailPage() {
+  console.log("aquila");
   const { photoId } = Route.useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -71,7 +72,7 @@ function PhotoDetailPage() {
   if (isLoading) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-10">
-        <Skeleton className="aspect-[16/10] rounded-3xl" />
+        <Skeleton className="aspect-16/10 rounded-3xl" />
       </div>
     );
   }
@@ -92,11 +93,7 @@ function PhotoDetailPage() {
       <div className="grid gap-8 lg:grid-cols-[1.6fr_1fr]">
         {/* Image */}
         <div className="overflow-hidden rounded-3xl bg-card shadow-elegant">
-          <img
-            src={photo.imageUrl}
-            alt={photo.title}
-            className="h-full w-full object-cover"
-          />
+          <img src={photo.imageUrl} alt={photo.title} className="h-full w-full object-cover" />
         </div>
 
         {/* Sidebar */}
@@ -163,9 +160,7 @@ function PhotoDetailPage() {
                   Average rating
                 </div>
                 <div className="mt-1 flex items-baseline gap-2">
-                  <span className="text-3xl font-bold">
-                    {photo.ratingAvg.toFixed(1)}
-                  </span>
+                  <span className="text-3xl font-bold">{photo.ratingAvg.toFixed(1)}</span>
                   <span className="text-sm text-muted-foreground">
                     / 5 · {photo.ratingCount} votes
                   </span>
@@ -179,16 +174,9 @@ function PhotoDetailPage() {
               </div>
               <div className="mt-2">
                 {user ? (
-                  <StarRating
-                    value={myRating ?? 0}
-                    onChange={(v) => rateMutation.mutate(v)}
-                  />
+                  <StarRating value={myRating ?? 0} onChange={(v) => rateMutation.mutate(v)} />
                 ) : (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate({ to: "/login" })}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => navigate({ to: "/login" })}>
                     Sign in to rate
                   </Button>
                 )}
@@ -219,7 +207,7 @@ function PhotoDetailPage() {
               onChange={(e) => setComment(e.target.value)}
               placeholder="Share your thoughts…"
               maxLength={1000}
-              className="min-h-[80px] resize-none"
+              className="min-h-20 resize-none"
             />
             <Button
               type="submit"
@@ -240,15 +228,10 @@ function PhotoDetailPage() {
 
         <div className="mt-6 space-y-4">
           {comments.length === 0 && (
-            <p className="text-sm text-muted-foreground">
-              Be the first to comment.
-            </p>
+            <p className="text-sm text-muted-foreground">Be the first to comment.</p>
           )}
           {comments.map((c) => (
-            <div
-              key={c.id}
-              className="flex gap-3 rounded-2xl border border-border bg-card p-4"
-            >
+            <div key={c.id} className="flex gap-3 rounded-2xl border border-border bg-card p-4">
               <Avatar className="h-9 w-9">
                 <AvatarFallback className="bg-secondary text-secondary-foreground text-xs">
                   {c.authorName
