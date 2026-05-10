@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { MapPin, MessageCircle, Send, Star, Users } from "lucide-react";
 import { toast } from "sonner";
-import { api } from "@/lib/api";
+import { apiFetch, authStore } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { StarRating } from "@/components/photo/StarRating";
 import { Button } from "@/components/ui/button";
@@ -18,53 +18,55 @@ export const Route = createFileRoute("/photo/$photoId_")({
 });
 
 function PhotoDetailPage() {
-  console.log("aquila");
   const { photoId } = Route.useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const [comment, setComment] = useState("");
 
+  // Single photo — includes comments, avgRating, userRating
   const { data: photo, isLoading } = useQuery({
-    queryKey: ["photo", photoId],
-    queryFn: () => api.getPhoto(photoId),
-  });
-
-  const { data: comments = [] } = useQuery({
-    queryKey: ["comments", photoId],
-    queryFn: () => api.listComments(photoId),
-  });
-
-  const { data: myRating } = useQuery({
-    queryKey: ["my-rating", photoId, user?.id],
-    queryFn: () => (user ? api.getMyRating(photoId, user.id) : Promise.resolve(null)),
-    enabled: !!user,
+    queryKey: ["social", "photo", photoId],
+    queryFn: () =>
+      apiFetch<SinglePhoto>(`/social/photos/${photoId}`, {}, authStore.getToken() ?? undefined),
   });
 
   const rateMutation = useMutation({
     mutationFn: (value: number) => {
       if (!user) throw new Error("Sign in to rate");
-      return api.ratePhoto(photoId, value, user);
+      return apiFetch(
+        `/social/photos/${photoId}/rate`,
+        { method: "POST", body: JSON.stringify({ value }) },
+        authStore.getToken(),
+      );
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["photo", photoId] });
-      qc.invalidateQueries({ queryKey: ["my-rating", photoId] });
-      qc.invalidateQueries({ queryKey: ["photos"] });
+      qc.invalidateQueries({ queryKey: ["social", "photo", photoId] });
+      qc.invalidateQueries({ queryKey: ["social", "feed"] });
+      qc.invalidateQueries({ queryKey: ["analytics", user?.id] });
+      qc.invalidateQueries({ queryKey: ["media", "my-uploads"] });
       toast.success("Rating saved");
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const [comment, setComment] = useState("");
   const commentMutation = useMutation({
     mutationFn: () => {
       if (!user) throw new Error("Sign in to comment");
-      return api.addComment(photoId, comment, user);
+      return apiFetch(
+        `/social/photos/${photoId}/comment`,
+        { method: "POST", body: JSON.stringify({ body: comment }) },
+        authStore.getToken(),
+      );
     },
     onSuccess: () => {
       setComment("");
-      qc.invalidateQueries({ queryKey: ["comments", photoId] });
-      qc.invalidateQueries({ queryKey: ["photo", photoId] });
-      qc.invalidateQueries({ queryKey: ["photos"] });
+      qc.invalidateQueries({ queryKey: ["social", "photo", photoId] });
+      qc.invalidateQueries({ queryKey: ["social", "feed"] });
+      qc.invalidateQueries({ queryKey: ["analytics", user?.id] });
+      qc.invalidateQueries({ queryKey: ["media", "my-uploads"] });
+
+      toast.success("Comment posted");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -93,30 +95,27 @@ function PhotoDetailPage() {
       <div className="grid gap-8 lg:grid-cols-[1.6fr_1fr]">
         {/* Image */}
         <div className="overflow-hidden rounded-3xl bg-card shadow-elegant">
-          <img src={photo.imageUrl} alt={photo.title} className="h-full w-full object-cover" />
+          <img src={photo.url} alt={photo.title} className="h-full w-full object-cover" />
         </div>
 
         {/* Sidebar */}
         <div className="space-y-6">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">{photo.title}</h1>
-            <p className="mt-2 text-muted-foreground">{photo.caption}</p>
+            {photo.caption && <p className="mt-2 text-muted-foreground">{photo.caption}</p>}
           </div>
 
+          {/* Author */}
           <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3">
             <Avatar className="h-10 w-10">
               <AvatarFallback className="bg-gradient-primary text-primary-foreground">
-                {photo.ownerName
-                  .split(" ")
-                  .map((s) => s[0])
-                  .join("")
-                  .slice(0, 2)}
+                {photo.username.slice(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <div className="font-medium">{photo.ownerName}</div>
+              <div className="font-medium">{photo.username}</div>
               <div className="text-xs text-muted-foreground">
-                {new Date(photo.createdAt).toLocaleDateString(undefined, {
+                {new Date(photo.created_at).toLocaleDateString(undefined, {
                   year: "numeric",
                   month: "short",
                   day: "numeric",
@@ -160,7 +159,7 @@ function PhotoDetailPage() {
                   Average rating
                 </div>
                 <div className="mt-1 flex items-baseline gap-2">
-                  <span className="text-3xl font-bold">{photo.ratingAvg.toFixed(1)}</span>
+                  <span className="text-3xl font-bold">{photo.avgRating.toFixed(1)}</span>
                   <span className="text-sm text-muted-foreground">
                     / 5 · {photo.ratingCount} votes
                   </span>
@@ -168,20 +167,27 @@ function PhotoDetailPage() {
               </div>
               <Star className="h-8 w-8 fill-warning text-warning" />
             </div>
-            <div className="mt-4 border-t border-border pt-4">
-              <div className="text-xs uppercase tracking-wide text-muted-foreground">
-                Your rating
+            {user?.role !== "creator" ? (
+              <div className="mt-4 border-t border-border pt-4">
+                <div className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Your rating
+                </div>
+                <div className="mt-2">
+                  {user ? (
+                    <StarRating
+                      value={photo.userRating ?? 0}
+                      onChange={(v) => rateMutation.mutate(v)}
+                    />
+                  ) : (
+                    <Button variant="outline" size="sm" onClick={() => navigate({ to: "/login" })}>
+                      Sign in to rate
+                    </Button>
+                  )}
+                </div>
               </div>
-              <div className="mt-2">
-                {user ? (
-                  <StarRating value={myRating ?? 0} onChange={(v) => rateMutation.mutate(v)} />
-                ) : (
-                  <Button variant="outline" size="sm" onClick={() => navigate({ to: "/login" })}>
-                    Sign in to rate
-                  </Button>
-                )}
-              </div>
-            </div>
+            ) : (
+              <></>
+            )}
           </div>
         </div>
       </div>
@@ -191,61 +197,63 @@ function PhotoDetailPage() {
         <h2 className="flex items-center gap-2 text-xl font-bold">
           <MessageCircle className="h-5 w-5" />
           Comments
-          <Badge variant="secondary">{comments.length}</Badge>
+          <Badge variant="secondary">{photo.comments.length}</Badge>
         </h2>
 
         {user ? (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              commentMutation.mutate();
-            }}
-            className="mt-4 flex gap-3"
-          >
-            <Textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="Share your thoughts…"
-              maxLength={1000}
-              className="min-h-20 resize-none"
-            />
-            <Button
-              type="submit"
-              disabled={!comment.trim() || commentMutation.isPending}
-              className="bg-gradient-primary border-0 hover:opacity-90 self-start"
+          user.role === "consumer" ? (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                commentMutation.mutate();
+              }}
+              className="mt-4 flex gap-3"
             >
-              <Send className="h-4 w-4" />
-            </Button>
-          </form>
+              <Textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Share your thoughts…"
+                maxLength={500}
+                className="min-h-20 resize-none"
+              />
+              <Button
+                type="submit"
+                disabled={!comment.trim() || commentMutation.isPending}
+                className="bg-gradient-primary border-0 hover:opacity-90 self-start"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </form>
+          ) : (
+            <></>
+          )
         ) : (
           <div className="mt-4 rounded-2xl border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
             <Link to="/login" className="text-primary underline">
               Sign in
-            </Link>{" "}
+            </Link>
             to leave a comment.
           </div>
         )}
 
         <div className="mt-6 space-y-4">
-          {comments.length === 0 && (
-            <p className="text-sm text-muted-foreground">Be the first to comment.</p>
+          {photo.comments.length === 0 && (
+            <p className="text-sm text-muted-foreground">
+              {user?.role === "consumer" ? "Be the first to comment." : "No comments yet"}
+            </p>
           )}
-          {comments.map((c) => (
+          {photo.comments.map((c) => (
             <div key={c.id} className="flex gap-3 rounded-2xl border border-border bg-card p-4">
               <Avatar className="h-9 w-9">
                 <AvatarFallback className="bg-secondary text-secondary-foreground text-xs">
-                  {c.authorName
-                    .split(" ")
-                    .map((s) => s[0])
-                    .join("")
-                    .slice(0, 2)}
+                  {c.username.slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <div className="flex items-baseline gap-2">
-                  <span className="font-medium">{c.authorName}</span>
+                  <span className="font-medium">{c.username}</span>
                   <span className="text-xs text-muted-foreground">
-                    {new Date(c.createdAt).toLocaleDateString()}
+                    {new Date(c.created_at).toLocaleDateString()}
                   </span>
                 </div>
                 <p className="mt-1 text-sm">{c.body}</p>

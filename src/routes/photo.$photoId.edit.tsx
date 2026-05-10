@@ -4,12 +4,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Loader2, Save, X } from "lucide-react";
 import { toast } from "sonner";
 import { RequireRole, useAuth } from "@/lib/auth";
-import { api } from "@/lib/api";
+import { apiFetch, authStore } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { LocationAutocomplete } from "@/components/ui/autocompleteInput";
 
 export const Route = createFileRoute("/photo/$photoId/edit")({
   component: () => (
@@ -26,9 +27,14 @@ function EditPhotoPage() {
   const qc = useQueryClient();
   const navigate = useNavigate();
 
-  const { data: photo, isLoading } = useQuery({
-    queryKey: ["photo", photoId],
-    queryFn: () => api.getPhoto(photoId),
+  const {
+    data: photo,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["social", "photo", photoId],
+    queryFn: () => apiFetch<SinglePhoto>(`/social/photos/${photoId}`, {}, authStore.getToken()),
+    retry: false, // don't retry 404s
   });
 
   const [form, setForm] = useState({
@@ -44,44 +50,52 @@ function EditPhotoPage() {
     if (photo) {
       setForm({
         title: photo.title,
-        caption: photo.caption,
-        location: photo.location,
+        caption: photo.caption ?? "",
+        location: photo.location ?? "",
         people: photo.people.join(", "),
       });
       setTags(photo.tags);
     }
   }, [photo]);
 
-  // Defence in depth — server enforces ownership too, but block UI early.
   useEffect(() => {
-    if (photo && user && photo.ownerId !== user.id) {
+    if (photo && user && photo.user_id !== user.id) {
       toast.error("You can only edit your own photos");
       navigate({ to: "/dashboard" });
     }
   }, [photo, user, navigate]);
 
   const mutation = useMutation({
-    mutationFn: () =>
-      api.updatePhoto(
-        photoId,
+    mutationFn: async () => {
+      if (!photo) throw new Error("Photo not loaded");
+
+      const people = form.people
+        ? form.people
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : [];
+
+      return apiFetch<Photo>(
+        `/social/photos/${photoId}`,
         {
-          title: form.title.trim(),
-          caption: form.caption.trim(),
-          location: form.location.trim(),
-          people: form.people
-            ? form.people
-                .split(",")
-                .map((s) => s.trim())
-                .filter(Boolean)
-            : [],
-          tags,
+          method: "PATCH",
+          body: JSON.stringify({
+            title: form.title.trim(),
+            caption: form.caption.trim() || undefined,
+            location: form.location.trim() || undefined,
+            people,
+            tags,
+          }),
         },
-        user!,
-      ),
+        authStore.getToken(),
+      );
+    },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["photo", photoId] });
-      qc.invalidateQueries({ queryKey: ["my-photos"] });
-      qc.invalidateQueries({ queryKey: ["photos"] });
+      qc.invalidateQueries({ queryKey: ["social", "photo", photoId] });
+      qc.invalidateQueries({ queryKey: ["media", "my-uploads"] });
+      qc.invalidateQueries({ queryKey: ["social", "feed"] });
+      qc.invalidateQueries({ queryKey: ["analytics", user?.id] });
       toast.success("Saved");
       navigate({ to: "/dashboard" });
     },
@@ -99,10 +113,26 @@ function EditPhotoPage() {
     setTagInput("");
   };
 
-  if (isLoading || !photo) {
+  if (isLoading) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-20 text-center">
         <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  // Photo exists in media but not social — uploaded before API was wired
+  if (isError || !photo) {
+    return (
+      <div className="mx-auto max-w-2xl px-4 py-20 text-center">
+        <h2 className="text-2xl font-bold">Photo not found</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          This photo was uploaded before the social service was connected. Delete it from your
+          dashboard and re-upload.
+        </p>
+        <Button asChild variant="outline" className="mt-4">
+          <Link to="/dashboard">Back to dashboard</Link>
+        </Button>
       </div>
     );
   }
@@ -117,7 +147,7 @@ function EditPhotoPage() {
 
       <h1 className="text-3xl font-bold tracking-tight">Edit photo</h1>
       <p className="mt-1 text-muted-foreground">
-        Update metadata and tags. Image cannot be replaced (re-upload instead).
+        Update metadata and tags. Image cannot be replaced — re-upload instead.
       </p>
 
       <form
@@ -128,7 +158,7 @@ function EditPhotoPage() {
         className="mt-8 grid gap-8 lg:grid-cols-[1fr_1.2fr]"
       >
         <div className="overflow-hidden rounded-3xl border border-border shadow-soft h-max">
-          <img src={photo.imageUrl} alt={photo.title} className="w-full object-cover" />
+          <img src={photo.url} alt={photo.title} className="w-full object-cover" />
         </div>
 
         <div className="space-y-5">
@@ -152,9 +182,10 @@ function EditPhotoPage() {
           </div>
           <div className="space-y-1.5">
             <Label>Location</Label>
-            <Input
+            <LocationAutocomplete
               value={form.location}
-              onChange={(e) => setForm({ ...form, location: e.target.value })}
+              onChange={(address) => setForm({ ...form, location: address })}
+              placeholder="Dolomites, Italy"
               maxLength={120}
             />
           </div>
@@ -199,9 +230,6 @@ function EditPhotoPage() {
                 maxLength={32}
               />
             </div>
-            {/* <p className="text-xs text-muted-foreground">
-              Auto-generated by Azure Cognitive Services on upload. Edit freely.
-            </p> */}
           </div>
 
           <Button

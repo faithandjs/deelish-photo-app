@@ -1,5 +1,6 @@
 import { createRouter, useRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
+import { queryClient } from "./lib/qc";
 
 function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
@@ -54,14 +55,24 @@ function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => vo
   );
 }
 
+// export const router = createRouter({
+//   // ← must be export const, not const
+//   routeTree,
+//   context: { queryClient },
+// });
+export const router = createRouter({
+  routeTree,
+  context: { queryClient },
+  scrollRestoration: true,
+  defaultPreloadStaleTime: 0,
+  defaultErrorComponent: DefaultErrorComponent,
+});
 export const getRouter = () => {
-  const router = createRouter({
-    routeTree,
-    context: {},
-    scrollRestoration: true,
-    defaultPreloadStaleTime: 0,
-    defaultErrorComponent: DefaultErrorComponent,
-  });
-
   return router;
 };
+
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: typeof router;
+  }
+}

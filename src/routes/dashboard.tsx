@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Edit3, Image as ImageIcon, Plus, Star, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { RequireRole, useAuth } from "@/lib/auth";
-import { api } from "@/lib/api";
+import { apiFetch, authStore } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -31,25 +31,43 @@ function DashboardPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["my-photos", user?.id],
-    queryFn: () => api.listPhotos({ ownerId: user!.id, pageSize: 100 }),
+  // My uploads from media service
+  const { data: uploadsData, isLoading: uploadsLoading } = useQuery({
+    queryKey: ["media", "my-uploads"],
+    queryFn: () => apiFetch<MediaItem[]>("/media/my/uploads", {}, authStore.getToken()),
     enabled: !!user,
   });
 
+  // Analytics stats
+  const { data: stats, isLoading: statsLoading } = useQuery({
+    queryKey: ["analytics", user?.id],
+    queryFn: () => apiFetch<CreatorStats>(`/analytics/stats/${user!.id}`, {}, authStore.getToken()),
+    enabled: !!user,
+  });
+
+  // Feed filtered to this user — for the photo grid with ratings/comments
+  const { data: feedData, isLoading: feedLoading } = useQuery({
+    queryKey: ["social", "feed", 1],
+    queryFn: () =>
+      apiFetch<FeedResponse>("/social/photos?page=1&limit=50", {}, authStore.getToken()),
+    enabled: !!user,
+  });
+
+  // Delete from both media + social service
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => api.deletePhoto(id, user!),
+    mutationFn: (photoId: string) =>
+      apiFetch(`/social/photos/${photoId}`, { method: "DELETE" }, authStore.getToken()),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["my-photos"] });
-      qc.invalidateQueries({ queryKey: ["photos"] });
+      qc.invalidateQueries({ queryKey: ["social", "feed"] });
+      qc.invalidateQueries({ queryKey: ["analytics", user?.id] });
       toast.success("Photo deleted");
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const photos = data?.items ?? [];
-  const totalRatings = photos.reduce((s, p) => s + p.ratingCount, 0);
-  const totalComments = photos.reduce((s, p) => s + p.commentCount, 0);
+  // Filter feed to only this user's photos
+  const myPhotos = (feedData?.photos ?? []).filter((p) => p.user_id === user?.id);
+  const isLoading = uploadsLoading || feedLoading;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -57,7 +75,7 @@ function DashboardPage() {
         <div>
           <p className="text-sm font-medium text-primary">Creator dashboard</p>
           <h1 className="mt-1 text-3xl font-bold tracking-tight sm:text-4xl">
-            Welcome back, {user?.displayName.split(" ")[0]}
+            Welcome back, {user?.username}
           </h1>
           <p className="mt-1 text-muted-foreground">
             Manage your library, track engagement, and upload new work.
@@ -70,15 +88,29 @@ function DashboardPage() {
         </Button>
       </div>
 
-      {/* Stats */}
+      {/* Stats — from analytics service */}
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
-        <StatCard label="Photos" value={photos.length} icon={<ImageIcon className="h-5 w-5" />} />
-        <StatCard label="Total ratings" value={totalRatings} icon={<Star className="h-5 w-5" />} />
-        <StatCard
-          label="Total comments"
-          value={totalComments}
-          icon={<Edit3 className="h-5 w-5" />}
-        />
+        {statsLoading ? (
+          Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)
+        ) : (
+          <>
+            <StatCard
+              label="Photos"
+              value={stats?.photo_count ?? 0}
+              icon={<ImageIcon className="h-5 w-5" />}
+            />
+            <StatCard
+              label="Total ratings"
+              value={stats?.total_ratings ?? 0}
+              icon={<Star className="h-5 w-5" />}
+            />
+            <StatCard
+              label="Total comments"
+              value={stats?.comment_count ?? 0}
+              icon={<Edit3 className="h-5 w-5" />}
+            />
+          </>
+        )}
       </div>
 
       {/* Library */}
@@ -91,11 +123,11 @@ function DashboardPage() {
               <Skeleton key={i} className="h-64 rounded-2xl" />
             ))}
           </div>
-        ) : photos.length === 0 ? (
+        ) : myPhotos.length === 0 ? (
           <EmptyLibrary />
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {photos.map((p) => (
+            {myPhotos.map((p) => (
               <div
                 key={p.id}
                 className="group overflow-hidden rounded-2xl bg-card shadow-soft transition-all hover:shadow-elegant"
@@ -106,7 +138,7 @@ function DashboardPage() {
                   className="block aspect-4/3 overflow-hidden"
                 >
                   <img
-                    src={p.thumbnailUrl}
+                    src={p.url}
                     alt={p.title}
                     loading="lazy"
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -115,12 +147,12 @@ function DashboardPage() {
                 <div className="p-4">
                   <h3 className="font-semibold line-clamp-1">{p.title}</h3>
                   <p className="mt-0.5 text-xs text-muted-foreground line-clamp-1">
-                    {p.location || "—"}
+                    {p.location ?? "—"}
                   </p>
                   <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
                     <span className="inline-flex items-center gap-1">
                       <Star className="h-3.5 w-3.5 fill-warning text-warning" />
-                      {p.ratingAvg.toFixed(1)} ({p.ratingCount})
+                      {p.avg_rating.toFixed(1)} ({p.rating_count})
                     </span>
                     <div className="flex items-center gap-1">
                       <Button asChild size="sm" variant="ghost" className="h-8 px-2">

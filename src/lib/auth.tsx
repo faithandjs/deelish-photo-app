@@ -1,18 +1,3 @@
-/**
- * Auth context — mock implementation simulating Azure AD B2C.
- *
- * Production swap-out:
- *   - Replace login() with MSAL `loginRedirect` / `acquireTokenSilent`.
- *   - User profile + role come from B2C ID token claims
- *     (`extension_role` custom claim recommended).
- *   - Persist tokens via msal-browser cache, not localStorage.
- *
- * RBAC is enforced at THREE layers:
- *   1. Route guards (this file's <RequireRole>)
- *   2. UI conditionals (hiding actions)
- *   3. API handlers (server-side ownership + role checks)
- */
-
 import {
   createContext,
   useCallback,
@@ -23,48 +8,78 @@ import {
   type ReactNode,
 } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { DEMO_USERS, store } from "./mock-data";
+import { apiFetch, authStore } from "./api";
 
 interface AuthContextValue {
   user: User | null;
   isAuthenticated: boolean;
-  loginAs: (role: UserRole) => void;
-  logout: () => void;
+  login: (username: string, password: string) => Promise<void>;
+  register: (username: string, password: string, role: UserRole) => Promise<void>;
+  logout: () => Promise<void>;
   hasRole: (role: UserRole) => boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+const USER_KEY = "deelish_user";
+const TOKEN_KEY = "deelish_token";
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    try {
+      const raw = localStorage.getItem(USER_KEY);
+      const token = localStorage.getItem(TOKEN_KEY);
+      if (raw && token) {
+        authStore.setToken(token); // ← rehydrate token into memory
+        return JSON.parse(raw);
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  });
 
-  // Hydrate from storage on mount (mirrors MSAL silent token flow).
-  useEffect(() => {
-    setUser(store.getUser());
-  }, []);
-
-  const loginAs = useCallback((role: UserRole) => {
-    const u = DEMO_USERS[role];
-    store.setUser(u);
+  const persist = (u: User | null, token?: string) => {
+    if (u && token) {
+      localStorage.setItem(USER_KEY, JSON.stringify(u));
+      localStorage.setItem(TOKEN_KEY, token);
+      authStore.setToken(token);
+    } else {
+      localStorage.removeItem(USER_KEY);
+      localStorage.removeItem(TOKEN_KEY);
+      authStore.setToken(null);
+    }
     setUser(u);
+  };
+  const login = useCallback(async (username: string, password: string) => {
+    const data = await apiFetch<{ accessToken: string; user: User }>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ username, password }),
+    });
+    persist(data.user, data.accessToken); // ← pass token
   }, []);
 
-  const logout = useCallback(() => {
-    store.setUser(null);
-    setUser(null);
+  const register = useCallback(async (username: string, password: string, role: UserRole) => {
+    const data = await apiFetch<{ accessToken: string; user: User }>("/auth/register", {
+      method: "POST",
+      body: JSON.stringify({ username, password, role }),
+    });
+    persist(data.user, data.accessToken); // ← pass token
+  }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      await apiFetch("/auth/logout", { method: "POST" }, authStore.getToken());
+    } finally {
+      persist(null); // clears both user and token
+    }
   }, []);
 
   const hasRole = useCallback((role: UserRole) => user?.role === role, [user]);
 
   const value = useMemo<AuthContextValue>(
-    () => ({
-      user,
-      isAuthenticated: !!user,
-      loginAs,
-      logout,
-      hasRole,
-    }),
-    [user, loginAs, logout, hasRole],
+    () => ({ user, isAuthenticated: !!user, login, register, logout, hasRole }),
+    [user, login, register, logout, hasRole],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -76,33 +91,21 @@ export function useAuth() {
   return ctx;
 }
 
-/**
- * Route guard — redirects unauthenticated users to /login and
- * users with the wrong role to /unauthorized.
- *
- * Note: TanStack Router's `beforeLoad` is the SSR-safe way to gate
- * routes. We use a client-side guard here because auth state lives in
- * localStorage in this demo. With Azure B2C you'd move the check to
- * `beforeLoad` reading from router context.
- */
+// Route guard — unchanged pattern, just cleaner
 export function RequireRole({ role, children }: { role: UserRole; children: ReactNode }) {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
-    // Wait one tick for hydration.
     const t = setTimeout(() => setChecked(true), 0);
     return () => clearTimeout(t);
   }, []);
 
   useEffect(() => {
     if (!checked) return;
-    if (!isAuthenticated) {
-      navigate({ to: "/login" });
-    } else if (user && user.role !== role) {
-      navigate({ to: "/unauthorized" });
-    }
+    if (!isAuthenticated) navigate({ to: "/login" });
+    else if (user?.role !== role) navigate({ to: "/unauthorized" });
   }, [checked, isAuthenticated, user, role, navigate]);
 
   if (!checked || !isAuthenticated || user?.role !== role) {

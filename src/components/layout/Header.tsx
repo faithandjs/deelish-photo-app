@@ -24,7 +24,7 @@ export function Header() {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isLogin = pathname === "/login";
-  console.log(pathname);
+
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -67,7 +67,7 @@ export function Header() {
                 <button className="flex items-center gap-2 rounded-full p-1 pr-3 hover:bg-muted transition-colors">
                   <Avatar className="h-8 w-8">
                     <AvatarFallback className="bg-gradient-primary text-primary-foreground text-xs">
-                      {user.displayName
+                      {user.username
                         .split(" ")
                         .map((s) => s[0])
                         .join("")
@@ -81,8 +81,8 @@ export function Header() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>
-                  <div className="font-medium">{user.displayName}</div>
-                  <div className="text-xs text-muted-foreground">{user.email}</div>
+                  <div className="font-medium">{user.username}</div>
+                  <div className="text-xs text-muted-foreground">{user.role}</div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

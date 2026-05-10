@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Search, Sparkles } from "lucide-react";
-import { api } from "@/lib/api";
+import { apiFetch, authStore } from "@/lib/api";
 import { PhotoCard } from "@/components/photo/PhotoCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ export const Route = createFileRoute("/search")({
   component: SearchPage,
   validateSearch: (s: Record<string, unknown>) => ({
     q: typeof s.q === "string" ? s.q : "",
+    page: typeof s.page === "number" ? s.page : 1,
   }),
   head: () => ({
     meta: [
@@ -32,14 +33,37 @@ function SearchPage() {
   const [input, setInput] = useState(search.q);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["search", search.q],
-    queryFn: () => api.listPhotos({ q: search.q || undefined, pageSize: 50 }),
-    enabled: true,
+    queryKey: ["search", search.q, search.page],
+    queryFn: () =>
+      apiFetch<SearchResponse>(
+        `/search?q=${encodeURIComponent(search.q)}&page=${search.page}&limit=50`,
+        {},
+        authStore.getToken(),
+      ),
+    enabled: !!search.q, // don't hit the API on empty query
   });
+
+  // Normalise SearchResult → Photo for PhotoCard
+  const photos: Photo[] = (data?.results ?? []).map((r) => ({
+    id: r.photo_id,
+    media_id: "",
+    user_id: "",
+    username: r.username,
+    url: r.url,
+    title: r.title,
+    caption: r.caption,
+    tags: r.tags,
+    location: r.location,
+    people: r.people,
+    created_at: r.created_at,
+    avg_rating: 0,
+    rating_count: 0,
+    comment_count: 0,
+  }));
 
   const submit = (q: string) => {
     setInput(q);
-    navigate({ search: { q } });
+    navigate({ search: { q, page: 1 } });
   };
 
   return (
@@ -104,9 +128,9 @@ function SearchPage() {
 
         {isLoading ? (
           <p className="text-muted-foreground">Searching…</p>
-        ) : data && data.items.length > 0 ? (
+        ) : photos.length > 0 ? (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {data.items.map((p) => (
+            {photos.map((p) => (
               <PhotoCard key={p.id} photo={p} />
             ))}
           </div>

@@ -1,11 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { ImagePlus, Loader2, Upload, X } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { ImagePlus, Loader2, Upload, X, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { RequireRole, useAuth } from "@/lib/auth";
-import { api } from "@/lib/api";
+import { apiFetch, authStore } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field } from "@/components/ui/field";
@@ -22,11 +22,6 @@ export const Route = createFileRoute("/upload")({
   head: () => ({ meta: [{ title: "Upload — Deelish" }] }),
 });
 
-/**
- * Strict input validation, mirrored on the server.
- * In production the server ALSO validates with the same schema
- * (shared via a /packages/contracts workspace).
- */
 const uploadSchema = z.object({
   title: z.string().trim().min(1, "Title required").max(120),
   caption: z.string().trim().max(500),
@@ -34,15 +29,16 @@ const uploadSchema = z.object({
   people: z.string().trim().max(500),
 });
 
-const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
+const MAX_BYTES = 10 * 1024 * 1024;
 const ACCEPTED = ["image/jpeg", "image/png", "image/webp"];
 
 function UploadPage() {
-  const { user } = useAuth();
   const navigate = useNavigate();
+  const qc = useQueryClient();
+
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
-
+  const [aiLoading, setAiLoading] = useState(false);
   const [tagInput, setTagInput] = useState("");
   const [form, setForm] = useState({
     title: "",
@@ -51,6 +47,7 @@ function UploadPage() {
     people: "",
     tags: [] as string[],
   });
+
   const addTag = () => {
     const t = tagInput.trim().toLowerCase();
     if (!t || form.tags.includes(t)) return;
@@ -58,10 +55,11 @@ function UploadPage() {
       toast.error("Max 20 tags");
       return;
     }
-    setForm((p) => ({ ...p, tags: [...form.tags, t] }));
+    setForm((p) => ({ ...p, tags: [...p.tags, t] }));
     setTagInput("");
   };
-  const handleFile = (f: File | null) => {
+
+  const handleFile = async (f: File | null) => {
     if (!f) return;
     if (!ACCEPTED.includes(f.type)) {
       toast.error("Only JPEG, PNG, or WebP images");
@@ -71,33 +69,66 @@ function UploadPage() {
       toast.error("Image must be under 10 MB");
       return;
     }
+
     setFile(f);
-    const url = URL.createObjectURL(f);
-    setPreview(url);
+    setPreview(URL.createObjectURL(f));
+
+    // AI analysis only — no media upload yet
+    setAiLoading(true);
+    try {
+      const fd = new FormData();
+      fd.append("image", f);
+      const ai = await apiFetch<AIAnalysis>("/ai/analyse", {
+        method: "POST",
+        body: fd,
+      }); // no auth — public endpoint
+
+      setForm((p) => ({
+        ...p,
+        caption: p.caption || ai.caption,
+        tags: p.tags.length ? p.tags : ai.tags,
+      }));
+      toast.success("AI suggestions applied");
+    } catch {
+      // AI is optional — silently continue
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   const mutation = useMutation({
     mutationFn: async () => {
       if (!file) throw new Error("Pick an image first");
       const parsed = uploadSchema.parse(form);
-      return api.uploadPhoto(
+
+      // Single multipart request — social service handles media internally
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("title", parsed.title);
+      if (parsed.caption) fd.append("caption", parsed.caption);
+      if (parsed.location) fd.append("location", parsed.location);
+      form.tags.forEach((t) => fd.append("tags", t));
+      if (parsed.people) {
+        parsed.people
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+          .forEach((p) => fd.append("people", p));
+      }
+
+      return apiFetch<Photo>(
+        "/social/photos",
         {
-          file,
-          title: parsed.title,
-          caption: parsed.caption,
-          location: parsed.location,
-          people: parsed.people
-            ? parsed.people
-                .split(",")
-                .map((s) => s.trim())
-                .filter(Boolean)
-            : [],
+          method: "POST",
+          body: fd,
         },
-        user!,
+        authStore.getToken(),
       );
     },
     onSuccess: (photo) => {
-      toast.success("Photo uploaded");
+      toast.success("Photo posted!");
+      qc.invalidateQueries({ queryKey: ["social", "feed"] });
+      qc.invalidateQueries({ queryKey: ["analytics"] });
       navigate({ to: "/photo/$photoId", params: { photoId: photo.id } });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -117,16 +148,22 @@ function UploadPage() {
         }}
         className="grid gap-8 lg:grid-cols-[1fr_1fr]"
       >
-        {/* Drop zone */}
         <div>
           {preview ? (
             <div className="relative overflow-hidden rounded-3xl border border-border shadow-soft">
               <img src={preview} alt="preview" className="aspect-square w-full object-cover" />
+              {aiLoading && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/70 backdrop-blur-sm">
+                  <Sparkles className="h-6 w-6 animate-pulse text-primary" />
+                  <p className="text-sm font-medium">Analysing image…</p>
+                </div>
+              )}
               <button
                 type="button"
                 onClick={() => {
                   setFile(null);
                   setPreview(null);
+                  setForm((p) => ({ ...p, caption: "", tags: [] }));
                 }}
                 className="absolute right-3 top-3 rounded-full bg-background/90 p-2 shadow-soft hover:bg-background"
                 aria-label="Remove"
@@ -155,7 +192,6 @@ function UploadPage() {
           )}
         </div>
 
-        {/* Metadata */}
         <div className="space-y-5">
           <Field label="Title" required>
             <Input
@@ -166,6 +202,7 @@ function UploadPage() {
               required
             />
           </Field>
+
           <Field label="Caption">
             <Textarea
               value={form.caption}
@@ -174,7 +211,13 @@ function UploadPage() {
               maxLength={500}
               className="min-h-25 resize-none"
             />
+            {form.caption && !aiLoading && (
+              <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                <Sparkles className="h-3 w-3" /> AI suggested — edit freely
+              </p>
+            )}
           </Field>
+
           <Field label="Tags">
             <div className="flex flex-wrap gap-1.5 rounded-xl border border-input bg-background p-2 min-h-9">
               {form.tags.map((t) => (
@@ -182,11 +225,8 @@ function UploadPage() {
                   #{t}
                   <button
                     type="button"
-                    onClick={() =>
-                      setForm((p) => ({ ...p, tags: form.tags.filter((x) => x !== t) }))
-                    }
+                    onClick={() => setForm((p) => ({ ...p, tags: p.tags.filter((x) => x !== t) }))}
                     className="ml-1 hover:text-destructive"
-                    aria-label={`Remove ${t}`}
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -207,17 +247,19 @@ function UploadPage() {
                 maxLength={32}
               />
             </div>
-            {/* <p className="text-xs text-muted-foreground">
-              Auto-generated by Azure Cognitive Services on upload. Edit freely.
-            </p> */}
+            {form.tags.length > 0 && !aiLoading && (
+              <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                <Sparkles className="h-3 w-3" /> AI suggested — edit freely
+              </p>
+            )}
           </Field>
+
           <Field label="Location">
             <LocationAutocomplete
               value={form.location}
               onChange={(address) => setForm({ ...form, location: address })}
               placeholder="Dolomites, Italy"
               maxLength={120}
-              // className={/* pass whatever className your <Input> uses */}
             />
           </Field>
 
@@ -232,12 +274,16 @@ function UploadPage() {
 
           <Button
             type="submit"
-            disabled={mutation.isPending || !file}
+            disabled={mutation.isPending || !file || aiLoading}
             className="w-full h-12 bg-gradient-primary border-0 shadow-elegant hover:opacity-90"
           >
             {mutation.isPending ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" /> Uploading…
+                <Loader2 className="h-4 w-4 animate-spin" /> Posting…
+              </>
+            ) : aiLoading ? (
+              <>
+                <Sparkles className="h-4 w-4 animate-pulse" /> Analysing…
               </>
             ) : (
               <>

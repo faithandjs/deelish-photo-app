@@ -21,36 +21,38 @@ export const Route = createFileRoute("/login")({
  * token's custom `extension_role` claim.
  */
 function LoginPage() {
-  const { loginAs } = useAuth();
+  const { login, user } = useAuth(); // ← pull user from context
   const navigate = useNavigate();
-  const [form, setForm] = useState({
-    role: "consumer" as UserRole,
-    name: "",
-    password: "",
-  });
+  const [form, setForm] = useState({ username: "", password: "" });
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handle = () => {
-    loginAs(form.role);
-    navigate({ to: form.role === "creator" ? "/dashboard" : "/feed" });
+  const handle = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      await login(form.username, form.password);
+      // user state is now updated in context — read it directly
+      console.log(user);
+      navigate({ to: user?.role === "creator" ? "/dashboard" : "/feed" });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Login failed");
+    } finally {
+      setLoading(false);
+    }
   };
-
+  console.log(error);
   return (
     <Auth>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          handle();
-          // mutation.mutate();
-        }}
-        className=""
-      >
+      <form onSubmit={handle} className="">
         <div className="space-y-5 pb-5">
-          <Field label="Name" required>
+          <Field label="Username" required>
             <Input
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              value={form.username}
+              onChange={(e) => setForm({ ...form, username: e.target.value })}
               placeholder="Alpine Solitude"
-              maxLength={120}
+              maxLength={30}
               required
             />
           </Field>
@@ -59,15 +61,19 @@ function LoginPage() {
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
               placeholder="********"
-              maxLength={8}
-              minLength={4}
+              minLength={8}
               required
               type="password"
             />
           </Field>
         </div>
-        <Button className="w-full h-14 bg-gradient-primary hover:opacity-90 font-semibold">
-          Login
+        {error && <p className="mb-4 text-sm text-destructive text-center">{error}</p>}
+        <Button
+          type="submit"
+          disabled={loading}
+          className="w-full h-14 bg-gradient-primary hover:opacity-90 font-semibold"
+        >
+          {loading ? "Logging in..." : "Login"}
         </Button>
       </form>
     </Auth>

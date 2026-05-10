@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowRight, Camera, Sparkles, Upload, Users } from "lucide-react";
+import { ArrowRight, Sparkles, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
