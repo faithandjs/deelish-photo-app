@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as UploadRouteImport } from './routes/upload'
 import { Route as UnauthorizedRouteImport } from './routes/unauthorized'
 import { Route as SignupRouteImport } from './routes/signup'
-import { Route as SearchRouteImport } from './routes/search'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as FeedRouteImport } from './routes/feed'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -33,11 +32,6 @@ const UnauthorizedRoute = UnauthorizedRouteImport.update({
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SearchRoute = SearchRouteImport.update({
-  id: '/search',
-  path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -76,7 +70,6 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/feed': typeof FeedRoute
   '/login': typeof LoginRoute
-  '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/unauthorized': typeof UnauthorizedRoute
   '/upload': typeof UploadRoute
@@ -88,7 +81,6 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/feed': typeof FeedRoute
   '/login': typeof LoginRoute
-  '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/unauthorized': typeof UnauthorizedRoute
   '/upload': typeof UploadRoute
@@ -101,7 +93,6 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/feed': typeof FeedRoute
   '/login': typeof LoginRoute
-  '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/unauthorized': typeof UnauthorizedRoute
   '/upload': typeof UploadRoute
@@ -115,7 +106,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/feed'
     | '/login'
-    | '/search'
     | '/signup'
     | '/unauthorized'
     | '/upload'
@@ -127,7 +117,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/feed'
     | '/login'
-    | '/search'
     | '/signup'
     | '/unauthorized'
     | '/upload'
@@ -139,7 +128,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/feed'
     | '/login'
-    | '/search'
     | '/signup'
     | '/unauthorized'
     | '/upload'
@@ -152,7 +140,6 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   FeedRoute: typeof FeedRoute
   LoginRoute: typeof LoginRoute
-  SearchRoute: typeof SearchRoute
   SignupRoute: typeof SignupRoute
   UnauthorizedRoute: typeof UnauthorizedRoute
   UploadRoute: typeof UploadRoute
@@ -181,13 +168,6 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/search': {
-      id: '/search'
-      path: '/search'
-      fullPath: '/search'
-      preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -240,7 +220,6 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   FeedRoute: FeedRoute,
   LoginRoute: LoginRoute,
-  SearchRoute: SearchRoute,
   SignupRoute: SignupRoute,
   UnauthorizedRoute: UnauthorizedRoute,
   UploadRoute: UploadRoute,

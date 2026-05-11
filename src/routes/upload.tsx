@@ -127,6 +127,7 @@ function UploadPage() {
     },
     onSuccess: (photo) => {
       toast.success("Photo posted!");
+      console.log("inval");
       qc.invalidateQueries({ queryKey: ["social", "feed", 1] });
       qc.invalidateQueries({ queryKey: ["analytics"] });
       navigate({ to: "/photo/$photoId", params: { photoId: photo.id } });

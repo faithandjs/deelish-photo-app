@@ -32,11 +32,11 @@ function DashboardPage() {
   const qc = useQueryClient();
 
   // My uploads from media service
-  const { data: uploadsData, isLoading: uploadsLoading } = useQuery({
-    queryKey: ["media", "my-uploads"],
-    queryFn: () => apiFetch<MediaItem[]>("/media/my/uploads", {}, authStore.getToken()),
-    enabled: !!user,
-  });
+  // const { data: uploadsData, isLoading: uploadsLoading } = useQuery({
+  //   queryKey: ["media", "my-uploads"],
+  //   queryFn: () => apiFetch<MediaItem[]>("/media/my/uploads", {}, authStore.getToken()),
+  //   enabled: !!user,
+  // });
 
   // Analytics stats
   const { data: stats, isLoading: statsLoading } = useQuery({
@@ -67,7 +67,7 @@ function DashboardPage() {
 
   // Filter feed to only this user's photos
   const myPhotos = (feedData?.photos ?? []).filter((p) => p.user_id === user?.id);
-  const isLoading = uploadsLoading || feedLoading;
+  const isLoading = feedLoading;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -89,7 +89,7 @@ function DashboardPage() {
       </div>
 
       {/* Stats — from analytics service */}
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+      {/* <div className="mt-8 grid gap-4 sm:grid-cols-3">
         {statsLoading ? (
           Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)
         ) : (
@@ -111,11 +111,11 @@ function DashboardPage() {
             />
           </>
         )}
-      </div>
+      </div> */}
 
       {/* Library */}
       <div className="mt-12">
-        <h2 className="mb-5 text-xl font-bold">Your library</h2>
+        {/* <h2 className="mb-5 text-xl font-bold">Your library</h2> */}
 
         {isLoading ? (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

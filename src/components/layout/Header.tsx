@@ -38,19 +38,16 @@ export function Header() {
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">
+          <NavLink to="/feed" active={pathname.startsWith("/feed")}>
+            <ImageIcon className="h-4 w-4" /> Browse
+          </NavLink>
           {user?.role === "creator" && (
             <>
               <NavLink to="/dashboard" active={pathname.startsWith("/dashboard")}>
                 Dashboard
               </NavLink>
             </>
-          )}{" "}
-          <NavLink to="/feed" active={pathname.startsWith("/feed")}>
-            <ImageIcon className="h-4 w-4" /> Browse
-          </NavLink>
-          <NavLink to="/search" active={pathname.startsWith("/search")}>
-            <Search className="h-4 w-4" /> Search
-          </NavLink>
+          )}
           {user?.role === "creator" && (
             <>
               <NavLink to="/upload" active={pathname.startsWith("/upload")}>
