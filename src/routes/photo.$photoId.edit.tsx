@@ -94,7 +94,7 @@ function EditPhotoPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["social", "photo", photoId] });
       qc.invalidateQueries({ queryKey: ["media", "my-uploads"] });
-      qc.invalidateQueries({ queryKey: ["social", "feed"] });
+      qc.invalidateQueries({ queryKey: ["social", "feed", 1] });
       qc.invalidateQueries({ queryKey: ["analytics", user?.id] });
       toast.success("Saved");
       navigate({ to: "/dashboard" });

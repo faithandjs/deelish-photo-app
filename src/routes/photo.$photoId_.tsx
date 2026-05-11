@@ -42,7 +42,7 @@ function PhotoDetailPage() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["social", "photo", photoId] });
-      qc.invalidateQueries({ queryKey: ["social", "feed"] });
+      qc.invalidateQueries({ queryKey: ["social", "feed", 1] });
       qc.invalidateQueries({ queryKey: ["analytics", user?.id] });
       qc.invalidateQueries({ queryKey: ["media", "my-uploads"] });
       toast.success("Rating saved");
@@ -62,7 +62,7 @@ function PhotoDetailPage() {
     onSuccess: () => {
       setComment("");
       qc.invalidateQueries({ queryKey: ["social", "photo", photoId] });
-      qc.invalidateQueries({ queryKey: ["social", "feed"] });
+      qc.invalidateQueries({ queryKey: ["social", "feed", 1] });
       qc.invalidateQueries({ queryKey: ["analytics", user?.id] });
       qc.invalidateQueries({ queryKey: ["media", "my-uploads"] });
 
@@ -232,7 +232,7 @@ function PhotoDetailPage() {
             <Link to="/login" className="text-primary underline">
               Sign in
             </Link>
-            to leave a comment.
+            &nbsp;to leave a comment.
           </div>
         )}
 

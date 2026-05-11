@@ -127,7 +127,7 @@ function UploadPage() {
     },
     onSuccess: (photo) => {
       toast.success("Photo posted!");
-      qc.invalidateQueries({ queryKey: ["social", "feed"] });
+      qc.invalidateQueries({ queryKey: ["social", "feed", 1] });
       qc.invalidateQueries({ queryKey: ["analytics"] });
       navigate({ to: "/photo/$photoId", params: { photoId: photo.id } });
     },
@@ -211,11 +211,11 @@ function UploadPage() {
               maxLength={500}
               className="min-h-25 resize-none"
             />
-            {form.caption && !aiLoading && (
+            {/* {form.caption && !aiLoading &&(
               <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
                 <Sparkles className="h-3 w-3" /> AI suggested — edit freely
               </p>
-            )}
+            )} */}
           </Field>
 
           <Field label="Tags">
@@ -247,11 +247,11 @@ function UploadPage() {
                 maxLength={32}
               />
             </div>
-            {form.tags.length > 0 && !aiLoading && (
+            {/* {form.tags.length > 0 && !aiLoading && (
               <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
                 <Sparkles className="h-3 w-3" /> AI suggested — edit freely
               </p>
-            )}
+            )} */}
           </Field>
 
           <Field label="Location">

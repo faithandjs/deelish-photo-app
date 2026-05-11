@@ -58,7 +58,7 @@ function DashboardPage() {
     mutationFn: (photoId: string) =>
       apiFetch(`/social/photos/${photoId}`, { method: "DELETE" }, authStore.getToken()),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["social", "feed"] });
+      qc.invalidateQueries({ queryKey: ["social", "feed", 1] });
       qc.invalidateQueries({ queryKey: ["analytics", user?.id] });
       toast.success("Photo deleted");
     },
