@@ -248,11 +248,11 @@ function UploadPage() {
                 maxLength={32}
               />
             </div>
-            {/* {form.tags.length > 0 && !aiLoading && (
+            {form.tags.length > 0 && !aiLoading && (
               <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
                 <Sparkles className="h-3 w-3" /> AI suggested — edit freely
               </p>
-            )} */}
+            )}
           </Field>
 
           <Field label="Location">
@@ -275,7 +275,7 @@ function UploadPage() {
 
           <Button
             type="submit"
-            disabled={mutation.isPending || !file || aiLoading}
+            disabled={mutation.isPending || !file}
             className="w-full h-12 bg-gradient-primary border-0 shadow-elegant hover:opacity-90"
           >
             {mutation.isPending ? (
